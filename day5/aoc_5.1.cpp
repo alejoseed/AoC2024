@@ -3,8 +3,8 @@
 #include <vector>
 #include <tuple>
 #include <string>
-#include <bits/stdc++.h>
 #include <unordered_map>
+
 using namespace std;
 void getInputs();
 
@@ -14,30 +14,30 @@ vector<vector<int>> verification;
 int main() {
     freopen("input.txt", "r", stdin);
     freopen("output.txt", "w", stdout);
-
+    int sum = 0;
     getInputs();
-
+    // 75,97,47,61,53
     for (const auto& line : verification) {
-        bool exists = false;
-        for (int i = 0; i < line.size() - 1; i++) {
-            bool curNumExists = false;
-            int key = line[i];
-            for (const auto& val : adj_list[key]) {
-                for (int j = i + 1; j < line.size(); j++) {
-                    if (line[j] == val) curNumExists = true;
+        vector<int> queue;
+        bool valid = true; 
+        for (const int& num : line) {
+            for (const int& shouldGoAfter : adj_list[num]) {
+                for (int i = 0; i < queue.size(); i++) {
+                    if (queue[i] == shouldGoAfter) {
+                        valid = false;
+                    }
                 }
-                if (curNumExists == false) { 
-                    exists = false;
-                    break;
-                }
-                else { 
-                    exists = true;
-                    break;
-                };
             }
+            queue.push_back(num);
         }
-        if (exists == true) cout << "true line" << "\n";
+
+        if (valid == true) {
+            auto mid = queue.begin() + queue.size() / 2;
+            sum += *mid;
+        }
+    
     }
+    cout << sum;
     return 0;
 }
 
