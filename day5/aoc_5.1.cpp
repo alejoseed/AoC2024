@@ -5,13 +5,6 @@
 #include <string>
 #include <bits/stdc++.h>
 #include <unordered_map>
-
-using namespace std;
-void createAdjList();
-
-unordered_map<int, vector<int>> adj_list;
-vector<vector<int>> verification;
-
 using namespace std;
 void getInputs();
 
@@ -26,15 +19,21 @@ int main() {
 
     for (const auto& line : verification) {
         bool exists = false;
-        for (int i = 0; i < line.size(); i++) {
+        for (int i = 0; i < line.size() - 1; i++) {
             bool curNumExists = false;
             int key = line[i];
             for (const auto& val : adj_list[key]) {
                 for (int j = i + 1; j < line.size(); j++) {
                     if (line[j] == val) curNumExists = true;
                 }
-                if (curNumExists == false) exists = false;
-                else exists = true;
+                if (curNumExists == false) { 
+                    exists = false;
+                    break;
+                }
+                else { 
+                    exists = true;
+                    break;
+                };
             }
         }
         if (exists == true) cout << "true line" << "\n";
