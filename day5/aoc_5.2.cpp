@@ -8,9 +8,11 @@
 using namespace std;
 void getInputs();
 int partOne();
+int partTwo();
 
 unordered_map<int, vector<int>> adj_list;
 vector<vector<int>> verification;
+vector<vector<int>> invalidOnes;
 
 int main() {
     freopen("input.txt", "r", stdin);
@@ -18,8 +20,11 @@ int main() {
     getInputs();
 
     int partOneSum = partOne();
-    cout << "Part One: " << partOneSum;
-    
+    cout << "Part One: " << partOneSum << "\n";
+
+    int partTwoSum = partTwo();
+    cout << "Part Two: " << partTwoSum << "\n";
+
     return 0;
 }
 
@@ -28,7 +33,7 @@ int partOne() {
     // 75,97,47,61,53
     for (const auto& line : verification) {
         vector<int> queue;
-        bool valid = true; 
+        bool valid = true;
         for (const int& num : line) {
             for (const int& shouldGoAfter : adj_list[num]) {
                 for (int i = 0; i < queue.size(); i++) {
@@ -43,35 +48,41 @@ int partOne() {
         if (valid == true) {
             auto mid = queue.begin() + queue.size() / 2;
             sum += *mid;
-        }    
+        }
+        else {
+            invalidOnes.push_back(line);
+        }
     }
     return sum;
 }
 
+// The only problem with this is that the vector ends up being reversed. That is something that I need to figure out.
+// I implemented some sorting algorithm out of the top of my head on this one that looks like bubble sort
 int partTwo() {
     int sum = 0;
 
-    // 75,97,47,61,53
-    for (const auto& line : verification) {
-        vector<int> queue;
-        bool valid = true; 
-        for (const int& num : line) {
-            for (const int& shouldGoAfter : adj_list[num]) {
-                for (int i = 0; i < queue.size(); i++) {
-                    if (queue[i] == shouldGoAfter) {
+
+    for (const auto& line : invalidOnes) {
+        vector<int> queue(line);
+
+        for (int i = 0; i < queue.size(); i++) {
+            for (int j = 0; j < queue.size(); j++) {
+                if (i == j) continue;
+                // For the current num on j, check if any of the numbers in that current vector are equal to the number in [i], which goes before j
+                for (const int& shouldGoAfter : adj_list[queue[j]]) {
+                    if (shouldGoAfter == queue[i]) {
+                        // This means that using the num in j, we found a number in the line that is not supposed to be before it. So let's swap i and j
                         int tmp = queue[i];
-                        queue[i] = shouldGoAfter;
-                        queue.push_back(tmp);
-                    }
+                        queue[i] = queue[j];
+                        queue[j] = tmp;
+                    };
                 }
             }
-            queue.push_back(num);
         }
 
-        if (valid == true) {
-            auto mid = queue.begin() + queue.size() / 2;
-            sum += *mid;
-        }
+        auto mid = queue.begin() + queue.size() / 2;
+        sum += *mid;
+
     }
     return sum;
 }
