@@ -15,6 +15,9 @@ bool isObstacle(tuple<int, int> inFrontOfCharacter);
 void traverse(tuple<int, int> character);
 int loopCount(tuple<int, int> character);
 int isObstacleOrCircle(tuple<int, int> inFrontOfCharacter);
+int loopFinder(tuple<int, int> character);
+bool isObstacle(tuple<int, int> inFrontOfCharacter);
+bool isObstacleOrCircleBool(tuple<int, int> inFrontOfCharacter);
 
 enum Direction {
     UP,
@@ -38,7 +41,6 @@ struct hash_tuple {
 };
 
 unordered_set<tuple<int, int>, hash_tuple> visited;
-unordered_map<tuple<int, int>, int> visitedMap;
 
 Direction characterDirection;
 Direction originalDirection;
@@ -59,31 +61,28 @@ int main() {
     }
 
     tuple<int, int> character = getCoordinates();
+    tuple<int, int> initialCoordinate = character;
+
     originalDirection = characterDirection;
 
     char initialChar = grid[get<0>(character)][get<1>(character)];
 
     traverse(character);
 
-    // Make the initial position the arrow again.
+    //// Make the initial position the arrow again.
     grid[get<0>(character)][get<1>(character)] = initialChar;
-    
     int totalLoops = 0;
-    for (int i = 0; (unsigned)i < grid.size(); i++) {
-        
-        for (int j = 0; (unsigned)j < grid[i].size(); j++) {
-            if (i == get<0>(character) && j == get<1>(character)) continue;
-            char originalChar = grid[i][j];
-            if (originalChar == '#') continue;
-
-            grid[i][j] = 'O';
-            // Make the current character a O. If we hit that O twice we got a loop.
-            totalLoops += loopCount(character);
-            grid[i][j] = originalChar;
-        }
-
-    }
     
+    for (const auto& visit : visited) {
+        if (visit._Equals(initialCoordinate)) 
+            continue;
+
+        char originalChar = grid[get<0>(visit)][get<1>(visit)];
+        grid[get<0>(visit)][get<1>(visit)] = 'O';
+        totalLoops += loopFinder(character);
+        grid[get<0>(visit)][get<1>(visit)] = originalChar;
+    }
+
     cout << "Total loops: " << totalLoops << '\n';
 
     cout << visited.size();
@@ -171,90 +170,76 @@ void traverse(tuple<int, int> character) {
     }
 }
 
-int loopCount(tuple<int, int> character) {
-    int visitedTwice = 0;
-    Direction tmpDir = originalDirection;
 
+int loopFinder(tuple<int, int> character) {
+    unordered_map<tuple<int, int>, int, hash_tuple> possibles;
+    Direction tmpDir = originalDirection;
+    int row = get<0>(character);
+    int col = get<1>(character);
     while (true) {
-        int row = get<0>(character);
-        int col = get<1>(character);
+
 
         if (outOfBounds(row, col) || tmpDir == OUT) {
             return 0;
         }
-        
-        if (visitedMap[{row, col}] >= 2) return 1;
 
-        int isObstacleOrCir;
+        if (possibles.find(character) != possibles.end()) {
+            if (possibles[character] > 4) 
+                return 1;
+        }
+
+        possibles[character]++;
+
         switch (tmpDir)
         {
         case UP:
-            if (outOfBounds(row - 1, col)) {
-                tmpDir = OUT;
-                return 0;
-            }
-            isObstacleOrCir = isObstacleOrCircle({ row - 1, col });
-            if (isObstacleOrCir == 0 || isObstacleOrCir == 1) {
-
-                if (isObstacleOrCir == 1) visitedMap[{row, col}]++;
+            if (isObstacleOrCircleBool({ row - 1, col })) {
+                int nc = col + 1;
                 tmpDir = RIGHT;
-                character = { row, col + 1 };
+                character = { row, nc };
             }
             else {
-                character = { row - 1, col };
+                int nr = row - 1;
+                character = { nr, col };
             }
             break;
-
         case RIGHT:
-            if (outOfBounds(row, col + 1)) {
-                tmpDir = OUT;
-                return 0;
-            }
-            isObstacleOrCir = isObstacleOrCircle({ row, col + 1 });
-            if (isObstacleOrCir == 0 || isObstacleOrCir == 1) {
-                if (isObstacleOrCir == 1) visitedMap[{row, col}]++;
+            if (isObstacleOrCircleBool({ row, col + 1 })) {
+                int nr = row + 1;
                 tmpDir = DOWN;
-                character = { row + 1, col };
+                character = { nr, col };
             }
             else {
-                character = { row, col + 1 };
+                int nc = col + 1;
+                character = { row, nc };
             }
             break;
-
         case DOWN:
-            if (outOfBounds(row + 1, col)) {
-                tmpDir = OUT;
-                return 0;
-            }
-            isObstacleOrCir = isObstacleOrCircle({ row + 1, col });
-            if (isObstacleOrCir == 0 || isObstacleOrCir == 1) {
-                if (isObstacleOrCir == 1) visitedMap[{row, col}]++;
+            if (isObstacleOrCircleBool({ row + 1, col })) {
+                int nc = col - 1;
                 tmpDir = LEFT;
-                character = { row, col - 1 };
+                character = { row, nc };
             }
             else {
-                character = { row + 1, col };
+                int nr = row + 1;
+                character = { nr, col };
             }
             break;
-
         case LEFT:
-            if (outOfBounds(row, col - 1)) {
-                tmpDir = OUT;
-                return 0;
-            }
-            isObstacleOrCir = isObstacleOrCircle({ row, col - 1 });
-            if (isObstacleOrCir == 0 || isObstacleOrCir == 1) {
-                if (isObstacleOrCir == 1) visitedMap[{row, col}]++;
+            if (isObstacleOrCircleBool({ row, col - 1 })) {
+                int nr = row - 1;
                 tmpDir = UP;
-                character = { row - 1, col };
+                character = { nr , col };
             }
             else {
-                character = { row, col - 1 };
+                int nc = col - 1;
+                character = { row, nc };
             }
             break;
+        default:
+            return 0;
         }
     }
-    return 0;
 }
 
 bool outOfBounds(int row, int col) {
@@ -270,6 +255,16 @@ bool isObstacle(tuple<int, int> inFrontOfCharacter) {
     return false;
 }
 
+
+bool isObstacleOrCircleBool(tuple<int, int> inFrontOfCharacter) {
+    int row = get<0>(inFrontOfCharacter);
+    int col = get<1>(inFrontOfCharacter);
+    if (!outOfBounds(row, col)) {
+        if (grid[row][col] == '#') return true;
+        if (grid[row][col] == 'O') return true;
+    }
+    return false;
+}
 
 int isObstacleOrCircle(tuple<int, int> inFrontOfCharacter) {
     int row = get<0>(inFrontOfCharacter);
