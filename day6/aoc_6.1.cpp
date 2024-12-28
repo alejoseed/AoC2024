@@ -13,8 +13,6 @@ tuple<int, int> getCoordinates();
 bool outOfBounds(int row, int col);
 bool isObstacle(tuple<int, int> inFrontOfCharacter);
 void traverse(tuple<int, int> character);
-int loopCount(tuple<int, int> character);
-int isObstacleOrCircle(tuple<int, int> inFrontOfCharacter);
 int loopFinder(tuple<int, int> character);
 bool isObstacle(tuple<int, int> inFrontOfCharacter);
 bool isObstacleOrCircleBool(tuple<int, int> inFrontOfCharacter);
@@ -69,7 +67,7 @@ int main() {
 
     traverse(character);
 
-    //// Make the initial position the arrow again.
+    // Make the initial position the arrow again.
     grid[get<0>(character)][get<1>(character)] = initialChar;
     int totalLoops = 0;
     
@@ -170,15 +168,12 @@ void traverse(tuple<int, int> character) {
     }
 }
 
-
 int loopFinder(tuple<int, int> character) {
     unordered_map<tuple<int, int>, int, hash_tuple> possibles;
     Direction tmpDir = originalDirection;
     int row = get<0>(character);
     int col = get<1>(character);
     while (true) {
-
-
         if (outOfBounds(row, col) || tmpDir == OUT) {
             return 0;
         }
